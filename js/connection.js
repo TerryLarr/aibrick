@@ -39,8 +39,8 @@ class Connection {
 		let payload = event.target.value;
 
 		if (payload.getUint8(0) != WRITE_STDOUT) {
-		    console.log("onMsgReceived (not stdout frame)");
-            return;
+		    console.log(`onMsgReceived (Raw Frame Header: 0x${payload.getUint8(0).toString(16)})`);
+			return
         } else {
             console.log("onMsgReceived");
         }
@@ -51,6 +51,7 @@ class Connection {
 			let command, message;
 			let received = this.rx_buffer.slice(0, this.rx_buffer.indexOf(EOF));
 			if (received.includes(SEP)) {
+				console.log(received)
 				const parts = received.split(SEP, 2);
 				command = parts[0];
 				message = parts[1];
@@ -59,6 +60,9 @@ class Connection {
 				message = received;
 			}
 			this.rx_buffer = this.rx_buffer.slice(this.rx_buffer.indexOf(EOF)+1);
+			let match = command.match(/[a-zA-Z]+/);
+			command = match ? match[0] : "";
+			console.log(command);
 			if (command == 'setup'){
 				clearInterval(this.setup_request);
 				console.log(JSON.parse(message))
