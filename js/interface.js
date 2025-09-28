@@ -72,7 +72,7 @@ function displayError(message){
 	document.getElementById("error-container").style.display = "block";
 	document.getElementById("error-message").innerHTML = message;
 }
-
+/*
 function isChrome(){
 	var isChromium = window.chrome;
 	var winNav = window.navigator;
@@ -94,6 +94,12 @@ function isChrome(){
 	} else { 
 		return false;
 	}
+}
+*/
+
+function supportsWebBluetooth(){
+	const isSecure = (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1');
+	return isSecure && !!navigator.bluetooth;
 }
 
 function isMobile(){

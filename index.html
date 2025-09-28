@@ -13,7 +13,7 @@
 	<title>aiBrick</title>
 	<meta name="viewport" content="width=device-width, initial-scale=0.95, user-scalable=no">
   </head>
-  <body onload="if (!isChrome()) {setConnButtonState('unsupported_browser')}">
+  <body onload="if (!navigator.bluetooth) { setConnButtonState('unsupported_browser') }">
 	<div class="app">
 		<div class="title-container">
 			<img src="img/ai-brick-ic.png" id="app-logo">
