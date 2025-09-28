@@ -60,8 +60,13 @@ class Connection {
 				message = received;
 			}
 			this.rx_buffer = this.rx_buffer.slice(this.rx_buffer.indexOf(EOF)+1);
+
 			let match = command.match(/[a-zA-Z]+/);
 			command = match ? match[0] : "";
+			
+			//console.log("Command parsed:", JSON.stringify(command));
+			//console.log(command.trim());
+			//command = command.replace(/[^\x20-\x7E]/g, '').trim();
 			console.log(command);
 			if (command == 'setup'){
 				clearInterval(this.setup_request);
