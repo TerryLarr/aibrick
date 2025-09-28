@@ -1,4 +1,0 @@
-> Open terminal
-> Navigate to this folder, then run python -m http.server 8000
-> go to http://<server ip>:8000 --bind 0.0.0.0
-> enjoy
