@@ -155,11 +155,60 @@ async function webcamInit(new_flip){
     rotate_button.style.visibility = "visible";
 }
 
+function getCroppedCanvas(sourceCanvas) {
+    const cropBox = document.getElementById("crop-box");
+    
+    // If crop box doesn't exist or isn't visible, return original canvas
+    if (!cropBox || cropBox.style.display === "none" || !sourceCanvas) {
+        return sourceCanvas;
+    }
+
+    // Get position info
+    const rect = cropBox.getBoundingClientRect();
+    const srcRect = sourceCanvas.getBoundingClientRect();
+
+    // Check if crop box has valid dimensions
+    if (rect.width <= 0 || rect.height <= 0) {
+        return sourceCanvas;
+    }
+
+    // Translate from screen coords → canvas coords
+    const scaleX = sourceCanvas.width / srcRect.width;
+    const scaleY = sourceCanvas.height / srcRect.height;
+
+    const sx = (rect.left - srcRect.left) * scaleX;
+    const sy = (rect.top - srcRect.top) * scaleY;
+    const sWidth = rect.width * scaleX;
+    const sHeight = rect.height * scaleY;
+
+    // Validate crop dimensions are within bounds and positive
+    if (sx < 0 || sy < 0 || sWidth <= 0 || sHeight <= 0 ||
+        sx + sWidth > sourceCanvas.width || sy + sHeight > sourceCanvas.height) {
+        console.warn("Crop box is outside canvas bounds, using full canvas");
+        return sourceCanvas;
+    }
+
+    // Create a new cropped canvas
+    const croppedCanvas = document.createElement("canvas");
+    croppedCanvas.width = Math.max(1, Math.floor(sWidth));
+    croppedCanvas.height = Math.max(1, Math.floor(sHeight));
+    const ctx = croppedCanvas.getContext("2d");
+
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(sourceCanvas, sx, sy, sWidth, sHeight, 0, 0, croppedCanvas.width, croppedCanvas.height);
+
+    return croppedCanvas;
+}
+
 async function imageLoop() {
     webcam.update(); // update the webcam frame
     if (performance.now() - frame_timer > frame_period){
         frame_timer = performance.now();
-        const prediction = await model.predict(webcam.canvas);
+
+        const cropped = getCroppedCanvas(webcam.canvas);
+        const prediction = await model.predict(cropped);
+        
         let model_scores = Array(model.getTotalClasses());
         let model_labels = model.getClassLabels();
         for (let i = 0; i < model.getTotalClasses(); i++){

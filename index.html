@@ -28,8 +28,13 @@
 			<span id="error-message"></span><br>
 			<a href="#" onclick="location.reload()">Click to reload.</a>
 		</div>
-		<div id="webcam-container">
+		<div id="webcam-container" style="position:relative;">
 			<div id="webcam-canvas-container"></div>
+			<div id="crop-box" 
+				style="display:none; position:absolute; top:50px; left:50px; width:100px; height:100px;
+						border:2px dashed #0ff; border-radius:8px; cursor:move; resize:both; overflow:hidden; z-index:10; min-width:50px; min-height:50px;">
+			</div>
+			<button id="toggle-crop">Enable Crop</button>
 			<img id="rotate" src="img/rotate.png" onclick="toggleWebcam()">
 		</div>
 		<div id="audio-container">
@@ -41,5 +46,77 @@
 			<a href="https://github.com/repkovsky/aibrick">About the project</a>
 		</div>
 	</div>
+	<script>
+		const cropBox = document.getElementById("crop-box");
+		const toggleCropBtn = document.getElementById("toggle-crop");
+
+		let cropEnabled = false;
+		let offsetX, offsetY, isDragging = false;
+
+		// Toggle crop box visibility
+		toggleCropBtn.addEventListener("click", () => {
+			cropEnabled = !cropEnabled;
+			cropBox.style.display = cropEnabled ? "block" : "none";
+			toggleCropBtn.textContent = cropEnabled ? "Disable Crop" : "Enable Crop";
+			
+			//console.log("Crop enabled:", cropEnabled);
+			//console.log("Crop box display:", cropBox.style.display);
+			//console.log("Crop box element:", cropBox);
+			//console.log("Parent container:", cropBox.parentElement);
+		
+		});
+
+		// Mouse drag logic
+		cropBox.addEventListener("mousedown", e => {
+			if (!cropEnabled) return;
+
+			const rect = cropBox.getBoundingClientRect();
+    		const isResizeArea = (e.clientX > rect.right - 20) && (e.clientY > rect.bottom - 20);
+
+			if (isResizeArea) return; // Don't drag when resizing
+
+			isDragging = true;
+			offsetX = e.offsetX;
+			offsetY = e.offsetY;
+			e.preventDefault();
+		});
+
+		document.addEventListener("mouseup", () => isDragging = false);
+
+		document.addEventListener("mousemove", e => {
+			if (!isDragging || !cropEnabled) return;
+			const rect = cropBox.parentElement.getBoundingClientRect();
+			cropBox.style.left = `${Math.min(rect.width - cropBox.offsetWidth, Math.max(0, e.clientX - rect.left - offsetX))}px`;
+			cropBox.style.top = `${Math.min(rect.height - cropBox.offsetHeight, Math.max(0, e.clientY - rect.top - offsetY))}px`;
+		});
+
+		// Touch drag logic for mobile
+		cropBox.addEventListener("touchstart", e => {
+			if (!cropEnabled) return;
+			
+			const touch = e.touches[0];
+			const rect = cropBox.getBoundingClientRect();
+
+			const isResizeArea = (touch.clientX > rect.right - 20) && (touch.clientY > rect.bottom - 20);
+
+			if (isResizeArea) return;
+
+			isDragging = true;
+			offsetX = touch.clientX - rect.left;
+			offsetY = touch.clientY - rect.top;
+			e.preventDefault();
+		});
+
+		document.addEventListener("touchend", () => isDragging = false);
+
+		document.addEventListener("touchmove", e => {
+			if (!isDragging || !cropEnabled) return;
+			const touch = e.touches[0];
+			const rect = cropBox.parentElement.getBoundingClientRect();
+			cropBox.style.left = `${Math.min(rect.width - cropBox.offsetWidth, Math.max(0, touch.clientX - rect.left - offsetX))}px`;
+			cropBox.style.top = `${Math.min(rect.height - cropBox.offsetHeight, Math.max(0, touch.clientY - rect.top - offsetY))}px`;
+			e.preventDefault();
+		});
+	</script>
   </body>
 </html>
